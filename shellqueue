@@ -1,0 +1,39 @@
+#!/bin/bash
+
+[ -z "$EDITOR" ] && EDITOR="vim"
+
+if [ $# -eq 0 ]
+    then
+        echo "No arguments supplied"
+else
+    if [ $1 = 'init' ]; then
+        if [ -d "planning" ]; then
+            echo "Folder already contains a shellqueue environment"
+        else
+            echo "Setting up environment..."
+            mkdir planning
+            mkdir scheduled
+            mkdir processing
+            mkdir completed
+            export $SHELLQUEUE_DIR=`pwd`
+        fi
+    else
+        if [ $1 = "daemon" ]; then
+            /usr/bin/python ~/git-repos/shellqueue/daemon.py $SHELLQUEUE_DIR
+        elif [ $1 = "copy" ]; then
+            if [ -d "../../planning" ]; then
+                target_dir="../.."
+            else
+                : ${SHELLQUEUE_DIR:?"Please set the SHELLQUEUE_DIR environment variable"}
+                target_dir="$SHELLQUEUE_DIR"
+            fi
+
+            OUTPUT_DIR=$(/usr/bin/python ~/git-repos/shellqueue/init_task.py `pwd` $SHELLQUEUE_DIR)
+            $EDITOR "$OUTPUT_DIR/shellqueue.manifest"
+            /usr/bin/python ~/git-repos/shellqueue/make_task.py `pwd` $OUTPUT_DIR
+            cd $OUTPUT_DIR
+            unset OUTPUT_DIR
+            unset target_dir
+        fi
+    fi
+fi
