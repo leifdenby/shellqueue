@@ -1,10 +1,20 @@
 #!/bin/bash
 
+usage() {
+    echo "usage: shellqueue <command>"
+    echo
+    echo "available commands:"
+    echo "  init      setup folder-structure for running a shellqueue in the current directory"
+    echo "  daemon    start a shellqueue daemon watching the current directory"
+    echo "  copy      copy the current directory to the shellqueue 'planning' folder"
+    echo "            (if run as '. shellqueue copy' the current directory will be changed to the copied instance)"
+}
+
 [ -z "$EDITOR" ] && EDITOR="vim"
 
-if [ $# -eq 0 ]
+if [ $# -eq 0 ] || [ $1 = "help" ]
     then
-        echo "No arguments supplied"
+        usage
 else
     if [ $1 = 'init' ]; then
         if [ -d "planning" ]; then
@@ -19,6 +29,7 @@ else
         fi
     else
         if [ $1 = "daemon" ]; then
+            [ -z "$SHELLQUEUE_DIR" ] && SHELLQUEUE_DIR=`pwd`
             /usr/bin/python ~/git-repos/shellqueue/daemon.py $SHELLQUEUE_DIR
         elif [ $1 = "copy" ]; then
             if [ -d "../../planning" ]; then
@@ -28,7 +39,7 @@ else
                 target_dir="$SHELLQUEUE_DIR"
             fi
 
-            OUTPUT_DIR=$(/usr/bin/python ~/git-repos/shellqueue/init_task.py `pwd` $SHELLQUEUE_DIR)
+            OUTPUT_DIR=$(/usr/bin/python ~/git-repos/shellqueue/init_task.py `pwd` $target_dir)
             $EDITOR "$OUTPUT_DIR/shellqueue.manifest"
             /usr/bin/python ~/git-repos/shellqueue/make_task.py `pwd` $OUTPUT_DIR
             cd $OUTPUT_DIR

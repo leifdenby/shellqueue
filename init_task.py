@@ -9,6 +9,7 @@ import shellqueue
 
 if len(sys.argv) != 3:
     print "make_task.py source target_environment"
+    sys.exit()
 
 source_directory = sys.argv[1]
 target_base_directory = sys.argv[2]

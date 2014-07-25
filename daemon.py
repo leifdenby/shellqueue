@@ -46,15 +46,13 @@ def run_task(project_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    def start():
+    def start(run_num):
 
         print "Starting project in %s" % project_folder
 
-        num_repeats = 0
         def cleanup_f():
-            if 'repeats' in manifest and num_repeats < int(manifest['repeats']):
-                num_repeats += 1
-                start()
+            if 'repeats' in manifest and run_num < int(manifest['repeats']):
+                start(run_num+1)
             else:
                 src = project_folder.replace('/scheduled/', '/processing/')
                 dst = project_folder.replace('/scheduled/', '/completed/')
@@ -63,7 +61,7 @@ def run_task(project_folder):
 
         popenAndCall(onExit=cleanup_f, popenArgs=manifest['exec'], cwd=dst, log_filename=os.path.join(dst, 'run.log'))
 
-    start()
+    start(0)
 
 print "Ready..."
 
