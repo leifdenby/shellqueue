@@ -6,8 +6,9 @@ usage() {
     echo "available commands:"
     echo "  init      setup folder-structure for running a shellqueue in the current directory"
     echo "  daemon    start a shellqueue daemon watching the current directory"
-    echo "  copy      copy the current directory to the shellqueue 'planning' folder"
+    echo "  clone     copy the current directory to the shellqueue 'planning' folder"
     echo "            (if run as '. shellqueue copy' the current directory will be changed to the copied instance)"
+    echo "  enqueue   move the current directory to the shellqueue 'scheduled' folder"
 }
 
 [ -z "$EDITOR" ] && EDITOR="vim"
@@ -31,7 +32,7 @@ else
         if [ $1 = "daemon" ]; then
             [ -z "$SHELLQUEUE_DIR" ] && SHELLQUEUE_DIR=`pwd`
             /usr/bin/python ~/git-repos/shellqueue/daemon.py $SHELLQUEUE_DIR
-        elif [ $1 = "copy" ]; then
+        elif [ $1 = "clone" ]; then
             if [ -d "../../planning" ]; then
                 target_dir="../.."
             else
@@ -45,6 +46,17 @@ else
             cd $OUTPUT_DIR
             unset OUTPUT_DIR
             unset target_dir
+        elif [ $1 = "enqueue" ]; then
+            if [ -d "../../scheduled" ]; then
+                target_dir="../../scheduled"
+            else
+                : ${SHELLQUEUE_DIR:?"Please set the SHELLQUEUE_DIR environment variable"}
+                target_dir="$SHELLQUEUE_DIR/scheduled"
+            fi
+            echo "`pwd` -> $target_dir"
+            mv `pwd` $target_dir
+        else
+            usage
         fi
     fi
 fi
