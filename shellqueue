@@ -26,7 +26,7 @@ else
             mkdir scheduled
             mkdir processing
             mkdir completed
-            export $SHELLQUEUE_DIR=`pwd`
+            export SHELLQUEUE_DIR=`pwd`
         fi
     else
         if [ $1 = "daemon" ]; then
@@ -54,7 +54,7 @@ else
                 target_dir="$SHELLQUEUE_DIR/scheduled"
             fi
             echo "`pwd` -> $target_dir"
-            mv `pwd` $target_dir
+            mv `pwd` $target_dir && cd .
         else
             usage
         fi

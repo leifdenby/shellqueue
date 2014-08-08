@@ -6,6 +6,7 @@ import glob
 import shutil
 import subprocess
 import threading
+import multiprocessing
 
 import shellqueue
 
@@ -32,7 +33,7 @@ def popenAndCall(onExit, popenArgs, cwd, log_filename):
     # returns immediately after the thread starts
     return thread
 
-def run_task(project_folder):
+def run_task(project_folder, task_complete_callback):
     manifest_filename = os.path.join(project_folder, 'shellqueue.manifest')
     manifest = shellqueue.parse_manifest(manifest_filename)
     cmd_args = [manifest['exec'],]
@@ -58,6 +59,7 @@ def run_task(project_folder):
                 dst = project_folder.replace('/scheduled/', '/completed/')
 
                 shutil.move(src, dst)
+                task_complete_callback()
 
         popenAndCall(onExit=cleanup_f, popenArgs=manifest['exec'], cwd=dst, log_filename=os.path.join(dst, 'run.log'))
 
@@ -65,15 +67,18 @@ def run_task(project_folder):
 
 print "Ready..."
 
-running_tasks = 0
+running_tasks = []
+max_tasks = multiprocessing.cpu_count()
+
 while True:
     scheduled_projects_path = os.path.join(project_folder, 'scheduled', '*')
     scheduled_tasks = glob.glob(scheduled_projects_path)
 
-    if len(scheduled_tasks) > 0:
+    if len(scheduled_tasks) > 0 and len(running_tasks) < max_tasks:
         scheduled_tasks.sort(key=lambda x: os.stat(x).st_mtime)
         t = scheduled_tasks[0]
-        run_task(t)
+        run_task(t, lambda: running_tasks.remove(t))
+        running_tasks.append(t)
         scheduled_tasks.remove(t)
 
     processing_projects_path = os.path.join(project_folder, 'processing', '*')
