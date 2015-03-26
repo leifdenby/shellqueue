@@ -23,7 +23,7 @@ def popenAndCall(onExit, popenArgs, cwd, log_filename):
     would give to subprocess.Popen.
     """
     def runInThread(onExit, popenArgs, cwd, log_filename):
-        with open(log_filename, 'w') as fh:
+        with open(log_filename, 'a+') as fh:
             proc = subprocess.Popen(popenArgs, cwd=cwd, stderr=fh, stdout=fh)
             proc.wait()
             onExit()
@@ -74,15 +74,15 @@ while True:
     scheduled_projects_path = os.path.join(project_folder, 'scheduled', '*')
     scheduled_tasks = glob.glob(scheduled_projects_path)
 
-    if len(scheduled_tasks) > 0 and len(running_tasks) < max_tasks:
+    processing_projects_path = os.path.join(project_folder, 'processing', '*')
+    processing_tasks = glob.glob(processing_projects_path)
+
+    if len(scheduled_tasks) > 0 and len(processing_tasks) < max_tasks:
         scheduled_tasks.sort(key=lambda x: os.stat(x).st_mtime)
         t = scheduled_tasks[0]
         run_task(t, lambda: running_tasks.remove(t))
         running_tasks.append(t)
         scheduled_tasks.remove(t)
-
-    processing_projects_path = os.path.join(project_folder, 'processing', '*')
-    processing_tasks = glob.glob(processing_projects_path)
 
     print "%s: %d scheduled, %d processing" % (time.strftime('%X %x %Z'), len(scheduled_tasks), len(processing_tasks))
 
